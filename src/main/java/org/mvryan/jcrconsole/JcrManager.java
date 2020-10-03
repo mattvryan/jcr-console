@@ -18,8 +18,11 @@
 package org.mvryan.jcrconsole;
 
 import com.google.common.io.Closer;
+import org.apache.jackrabbit.core.data.DataStore;
+import org.apache.jackrabbit.core.data.FileDataStore;
 import org.apache.jackrabbit.oak.Oak;
 import org.apache.jackrabbit.oak.jcr.Jcr;
+import org.apache.jackrabbit.oak.plugins.blob.datastore.DataStoreBlobStore;
 import org.apache.jackrabbit.oak.segment.SegmentNodeStore;
 import org.apache.jackrabbit.oak.segment.SegmentNodeStoreBuilders;
 import org.apache.jackrabbit.oak.segment.file.FileStore;
@@ -47,12 +50,18 @@ public class JcrManager implements Closeable {
         this.config = config;
     }
 
-    private Repository getOrCreateRepository() throws IOException, InvalidFileStoreVersionException {
+    private Repository getOrCreateRepository() throws IOException, InvalidFileStoreVersionException, RepositoryException {
         if (null == repository) {
-            FileStore fs = FileStoreBuilder.fileStoreBuilder(new File(config.getProperty(Configuration.REPO_DIR))).build();
+            FileStoreBuilder fsBuilder = FileStoreBuilder.fileStoreBuilder(new File(config.getProperty(Configuration.REPO_DIR)));
+            DataStore dataStore = new FileDataStore();
+            dataStore.init(config.getProperty(Configuration.DATASTORE_DIR));
+            fsBuilder.withBlobStore(new DataStoreBlobStore(dataStore));
+
+            FileStore fs = fsBuilder.build();
             closer.register(asCloseable(fs));
 
-            SegmentNodeStore nodeStore = SegmentNodeStoreBuilders.builder(fs).build();
+            SegmentNodeStore nodeStore = SegmentNodeStoreBuilders.builder(fs)
+                    .build();
 
             Oak oak = new Oak(nodeStore);
             Jcr jcr = new Jcr(oak);

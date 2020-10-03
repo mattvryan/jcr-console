@@ -25,6 +25,7 @@ import java.util.Properties;
 public class Configuration extends Properties {
     public static final String APP_DIR = "app.dir";
     public static final String REPO_DIR = "repo.dir";
+    public static final String DATASTORE_DIR = "ds.dir";
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
 
@@ -36,6 +37,7 @@ public class Configuration extends Properties {
         String appDir = Paths.get(System.getProperty("user.home"), ".jcr-console").toString();
 
         String repoDir = getRepoDir(appDir);
+        String dsDir = getDsDir(appDir);
 
         cfg.setProperty(APP_DIR, appDir);
         cfg.setProperty(REPO_DIR, repoDir);
@@ -48,6 +50,10 @@ public class Configuration extends Properties {
 
     private static String getRepoDir(@NotNull final String appDir) {
         return Paths.get(appDir, "repository").toString();
+    }
+
+    private static String getDsDir(@NotNull final String appDir) {
+        return Paths.get(appDir, "blobs").toString();
     }
 
     public String getUsername() {
