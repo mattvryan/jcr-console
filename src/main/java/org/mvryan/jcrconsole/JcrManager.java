@@ -43,9 +43,8 @@ public class JcrManager implements Closeable {
     private Repository repository;
 
     @Inject
-    public JcrManager(@NotNull final Configuration config) throws IOException, InvalidFileStoreVersionException {
+    public JcrManager(@NotNull final Configuration config) {
         this.config = config;
-        repository = getOrCreateRepository();
     }
 
     private Repository getOrCreateRepository() throws IOException, InvalidFileStoreVersionException {
@@ -63,7 +62,8 @@ public class JcrManager implements Closeable {
         return repository;
     }
 
-    public Session getSession() throws RepositoryException {
+    public Session getSession() throws IOException, InvalidFileStoreVersionException, RepositoryException {
+        repository = getOrCreateRepository();
         Session session = repository.login(new SimpleCredentials(config.getUsername(), config.getPassword()));
         closer.register(asCloseable(session));
         return session;
